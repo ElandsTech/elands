@@ -388,10 +388,7 @@
                 <img src="/img/Elands-tech logo.svg" alt="Company Logo" class="logo">
                 <div class="company-name">Engineering Solutions</div>
             </div>
-            <button class="calendar-btn" onclick="openCalendar()">
-                <span>📅</span>
-                <span>Book Appointment</span>
-            </button>
+           
         </div>
     </header>
 
@@ -405,7 +402,7 @@
             <p>Delivering quality solutions across electrical, mechanical, welding, and boiler services</p>
         </div>
     </div>
-
+<div class="calendly-inline-widget" id="calendlyContainer" data-url="https://calendly.com/elandstech/30min?hide_gdpr_banner=1" style="min-width:320px;height:700px;"></div>
     <!-- Services Section -->
     <div class="services-section">
         <div class="container">
@@ -580,5 +577,10 @@
         // Auto-restart animation every 15 seconds
         setInterval(restartAnimation, 15000);
     </script>
+    <!-- Calendly inline widget begin -->
+
+<script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
+
+<!-- Calendly inline widget end -->
 </body>
 </html>
