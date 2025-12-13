@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engineering Services</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        /* Header Section */
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+        }
+@media (max-width: 768px) {
+            .logo-wrapper {
+                padding: 20px;
+            }
+        }
+        .header-content {
+            background-color: transparent;
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .logo-container {
+            text-align: center;
+            flex: 1;
+        }
+
+        .logo {
+            max-width: 200px;
+            height: auto;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+        }
+
+        .company-name {
+            color: white;
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-top: 10px;
+        }
+
+        .calendar-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .calendar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .calendar-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Hero Video Section */
+        .hero-video-container {
+            width: 100%;
+            height: 60vh;
+            min-height: 400px;
+            max-height: 700px;
+            position: relative;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .hero-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .video-overlay h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        }
+
+        .video-overlay p {
+            font-size: 1.5em;
+            max-width: 800px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Services Section */
+        .services-section {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 60px 20px;
+        }
+
+        .section-title {
+            text-align: center;
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 50px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 40px;
+            padding: 20px;
+        }
+
+        .service-card {
+            perspective: 1000px;
+            height: 400px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .service-card:hover .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .card-front {
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .card-back {
+            background: #1a1a1a;
+            transform: rotateY(180deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-wrapper {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .icon {
+            font-size: 60px;
+            color: white;
+        }
+
+        .card-front h2 {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .card-front p {
+            color: #666;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+
+        .card-back img, .card-back video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .hover-hint {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            pointer-events: none;
+            animation: pulse 2s infinite;
+        }
+
+        /* Footer Section */
+        footer {
+            background: #1a1a1a;
+            color: white;
+            padding: 60px 20px 20px;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section h3 {
+            color: #667eea;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .contact-icon {
+            font-size: 1.5em;
+            color: #667eea;
+            min-width: 30px;
+        }
+
+        .contact-text {
+            line-height: 1.6;
+        }
+
+        .contact-text a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .contact-text a:hover {
+            color: #667eea;
+        }
+
+        .map-container {
+            width: 100%;
+            height: 300px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid #333;
+            color: #999;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        @media (max-width: 1024px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .calendar-btn {
+                margin-top: 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .company-name {
+                font-size: 1.8em;
+            }
+
+            .video-overlay h1 {
+                font-size: 2em;
+            }
+
+            .video-overlay p {
+                font-size: 1.1em;
+            }
+
+            .hero-video-container {
+                height: 50vh;
+                min-height: 300px;
+            }
+
+            .section-title {
+                font-size: 2em;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .service-card {
+                height: 350px;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+
+            .calendar-btn {
+                padding: 12px 20px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with Logo and Calendar Button -->
+    <header>
+        <div class="header-content">
+            <div style="width: 200px;"></div> <!-- Spacer for alignment -->
+            <div class="logo-container">
+                <img src="/img/Elands-tech logo.svg" alt="Company Logo" class="logo">
+                <div class="company-name">Engineering Solutions</div>
+            </div>
+            <button class="calendar-btn" onclick="openCalendar()">
+                <span>📅</span>
+                <span>Book Appointment</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Full Width Hero Video -->
+    <div class="hero-video-container">
+        <video class="hero-video" autoplay muted loop playsinline>
+            <source src="/videos/home.mp4" type="video/mp4">
+        </video>
+        <div class="video-overlay">
+            <h1>Excellence in Engineering</h1>
+            <p>Delivering quality solutions across electrical, mechanical, welding, and boiler services</p>
+        </div>
+    </div>
+
+    <!-- Services Section -->
+    <div class="services-section">
+        <div class="container">
+            <h2 class="section-title">Our Services</h2>
+            
+            <div class="services-grid">
+                <!-- Electrical Engineering -->
+                <div class="service-card">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="icon-wrapper">
+                                <div class="icon">⚡</div>
+                            </div>
+                            <h2>Electrical Engineering</h2>
+                            <p>Comprehensive electrical installations, maintenance, and troubleshooting services for industrial and commercial applications.</p>
+                            <div class="hover-hint">Hover to view</div>
+                        </div>
+                        <div class="card-back">
+                            <video autoplay muted loop playsinline>
+                                <source src="/videos/electrical.mp4" type="video/mp4">
+                            </video>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mechanical Engineering -->
+                <div class="service-card">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="icon-wrapper">
+                                <div class="icon">⚙️</div>
+                            </div>
+                            <h2>Mechanical Engineering</h2>
+                            <p>Expert mechanical design, installation, and maintenance of industrial machinery and systems.</p>
+                            <div class="hover-hint">Hover to view</div>
+                        </div>
+                        <div class="card-back">
+                            <video autoplay muted loop playsinline>
+                                <source src="/videos/mechanical.mp4" type="video/mp4">
+                            </video>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Welding and Fabrication -->
+                <div class="service-card">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="icon-wrapper">
+                                <div class="icon">🔥</div>
+                            </div>
+                            <h2>Welding & Fabrication</h2>
+                            <p>Custom metal fabrication and professional welding services for structural and industrial projects.</p>
+                            <div class="hover-hint">Hover to view</div>
+                        </div>
+                        <div class="card-back">
+                            <video autoplay muted loop playsinline>
+                                <source src="/videos/fabrication.mp4" type="video/mp4">
+                            </video>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boiler Maintenance -->
+                <div class="service-card">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="icon-wrapper">
+                                <div class="icon">🔧</div>
+                            </div>
+                            <h2>Boiler Maintenance & Installation</h2>
+                            <p>Complete boiler installation, maintenance, and repair services ensuring optimal performance and safety.</p>
+                            <div class="hover-hint">Hover to view</div>
+                        </div>
+                        <div class="card-back">
+                            <video autoplay muted loop playsinline>
+                                <source src="/videos/boiler.mp4" type="video/mp4">
+                            </video>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <!-- Contact Information -->
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">📞</div>
+                        <div class="contact-text">
+                            <strong>Phone:</strong><br>
+                            <a href="tel:+27734012101">+27 73 401 2101</a><br>
+                            <a href="tel:+27659014276">+27 65 901 4276</a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">✉️</div>
+                        <div class="contact-text">
+                            <strong>Email:</strong><br>
+                            <a href="mailto:info@elandstech.co.za">info@elandstech.co.za</a><br>
+                            <a href="mailto:support@elandstech.co.za">support@elandstech.co.za</a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">⏰</div>
+                        <div class="contact-text">
+                            <strong>Business Hours:</strong><br>
+                            Mon - Fri: 8:00 AM - 5:00 PM<br>
+                            Sat: 9:00 AM - 1:00 PM<br>
+                            Sun: Closed
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address -->
+            <div class="footer-section">
+                <h3>Our Address</h3>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">📍</div>
+                        <div class="contact-text">
+                            <strong>Head Office:</strong><br>
+                            1 Industrial Park<br>
+                            Meyerton<br>
+                            Gauteng, 1961<br>
+                            South Africa
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map -->
+            <div class="footer-section">
+                <h3>Find Us</h3>
+                <div class="map-container">
+                    <!-- Replace with your actual location coordinates -->
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d322913.62936587963!2d27.879173663203193!3d-26.59318996036981!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1e94fe9697f33549%3A0x4afa31ae044064a5!2sMeyerton!5e0!3m2!1sen!2sza!4v1765627206771!5m2!1sen!2sza" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2025 Engineering Solutions. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function openCalendar() {
+            // Replace this URL with your actual calendar/booking system URL
+            window.open('https://calendly.com/your-calendar', '_blank');
+            
+            // Or if you want to navigate to the calendar page:
+            // window.location.href = 'your-calendar-page.html';
+            
+            // Or show an alert if calendar system is not set up yet:
+            // alert('Calendar booking system coming soon!');
+        }
+    </script>
+     <script>
+        function restartAnimation() {
+            const svg = document.querySelector('svg');
+            const clone = svg.cloneNode(true);
+            svg.parentNode.replaceChild(clone, svg);
+        }
+        
+        // Auto-restart animation every 15 seconds
+        setInterval(restartAnimation, 15000);
+    </script>
+</body>
+</html>
