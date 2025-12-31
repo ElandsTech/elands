@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1e40af" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#1e40af" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Invoice Generator" />
+    <meta name="apple-mobile-web-app-title" content="Invoice App" />
+    <meta
+      name="description"
+      content="Professional Engineering Services Invoice Generator"
+    />
+
+    <title>Elandstech - Invoice</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.production.min.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+      #print,
+      .print-mode {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      input,
+      textarea,
+      select {
+        font-family: inherit;
+      }
+
+      @media print {
+        body {
+          background: white;
+        }
+        .print\\:hidden {
+          display: none !important;
+        }
+        .print\\:block {
+          display: block !important;
+        }
+        @page {
+          size: A4;
+          margin: 10mm;
+        }
+
+        .client-project-container {
+          display: grid !important;
+          grid-template-columns: 1fr 1fr !important;
+          gap: 1rem !important;
+        }
+
+        .header-container {
+          display: flex !important;
+          flex-direction: row !important;
+          justify-content: space-between !important;
+          align-items: flex-start !important;
+          gap: 1.5rem !important;
+        }
+
+        .header-container > div {
+          align-self: flex-start !important;
+        }
+
+        #invoice-content {
+          max-width: 100% !important;
+          padding: 2rem !important;
+          margin: 0 !important;
+        }
+      }
+      @media print {
+        html,
+        body {
+          width: 210mm;
+          max-width: 210mm;
+        }
+
+        #invoice-content {
+          width: 210mm !important;
+          max-width: 210mm !important;
+          margin: 0 auto !important;
+        }
+
+        .md\\:flex-row {
+          flex-direction: row !important;
+        }
+
+        .md\\:grid-cols-2 {
+          grid-template-columns: 1fr 1fr !important;
+        }
+
+        .overflow-x-auto {
+          overflow: visible !important;
+        }
+      }
+      .print-mode {
+        width: 210mm !important;
+      }
+
+      .print-mode #invoice-content {
+        width: 210mm !important;
+        max-width: 210mm !important;
+      }
+
+      .print-mode .md\\:flex-row {
+        flex-direction: row !important;
+      }
+
+      .print-mode .md\\:grid-cols-2 {
+        grid-template-columns: 1fr 1fr !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect } = React;
+
+      // Icons
+      const PrinterIcon = () => (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <polyline points="6 9 6 2 18 2 18 9"></polyline>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+          <rect x="6" y="14" width="12" height="8"></rect>
+        </svg>
+      );
+
+      const DownloadIcon = () => (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      );
+
+      const PlusIcon = () => (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      );
+
+      const MenuIcon = () => (
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      );
+
+      const XIcon = () => (
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      );
+
+      const SettingsIcon = () => (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M12 1v6m0 6v6m8.66-10l-5.2 3m-2.92 1.732L6.34 17.732M23 12h-6m-6 0H1m19.66 5l-5.2-3m-2.92-1.732L6.34 6.268"></path>
+        </svg>
+      );
+
+      const UploadIcon = () => (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+      );
+
+      function InvoiceApp() {
+        const [sidebarOpen, setSidebarOpen] = useState(false);
+        const [settingsOpen, setSettingsOpen] = useState(false);
+        const [invoiceCounter, setInvoiceCounter] = useState(1);
+        const [savedInvoices, setSavedInvoices] = useState([]);
+        const [companyLogo, setCompanyLogo] = useState("");
+
+        const [companyDetails, setCompanyDetails] = useState({
+          name: "ELANDSTECH",
+          tagline: "Mechanical • Electrical • Boilermaking",
+          address: "123 Meyerton",
+          city: "Johannesburg, Gauteng 0000",
+          website: "www.elandstech.co.za",
+          email: "info@elandstech.co.za",
+          phone: "011 123 4567",
+          vat: "4123456789",
+        });
+
+        const [bankDetails, setBankDetails] = useState({
+          MECHANICAL: {
+            bankName: "FNB",
+            accountHolder: "Elands Tech (PTY) LTD",
+            branchName: "Meyerton",
+            branchCode: "250655",
+            accountNumber: "62847501236",
+          },
+          ELECTRICAL: {
+            bankName: "FNB",
+            accountHolder: "Elands Tech (PTY) LTD",
+            branchName: "COMMERCIAL CITY",
+            branchCode: "250655",
+            accountNumber: "62847501236",
+          },
+          BOILERMAKING: {
+            bankName: "FNB",
+            accountHolder: "Elands Tech (PTY) LTD",
+            branchName: "COMMERCIAL CITY",
+            branchCode: "250655",
+            accountNumber: "62847501236",
+          },
+        });
+
+        const [invoiceData, setInvoiceData] = useState({
+          number: "INV-2025-001",
+          date: new Date().toISOString().split("T")[0],
+          serviceType: "MECHANICAL",
+          clientName: "",
+          clientCompany: "",
+          clientAddress: "",
+          clientEmail: "",
+          clientTel: "",
+          projectDetails: {
+            projectName: "",
+            projectNumber: "",
+            location: "",
+            poNumber: "",
+          },
+          items: [{ description: "", quantity: 1, unitPrice: 0 }],
+          notes: "",
+        });
+
+        useEffect(() => {
+          const saved = localStorage.getItem("elandstech_invoices");
+          if (saved) {
+            const invoices = JSON.parse(saved);
+            setSavedInvoices(invoices);
+            if (invoices.length > 0) {
+              const lastNum = Math.max(
+                ...invoices.map(
+                  (inv) => parseInt(inv.number.split("-")[2]) || 0
+                )
+              );
+              setInvoiceCounter(lastNum + 1);
+            }
+          }
+
+          const savedLogo = localStorage.getItem("elandstech_logo");
+          if (savedLogo) setCompanyLogo(savedLogo);
+
+          const savedCompany = localStorage.getItem("elandstech_company");
+          if (savedCompany) setCompanyDetails(JSON.parse(savedCompany));
+
+          const savedBanks = localStorage.getItem("elandstech_banks");
+          if (savedBanks) setBankDetails(JSON.parse(savedBanks));
+        }, []);
+
+        const handleLogoUpload = (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            if (file.size > 2000000) {
+              alert("Logo file size should be less than 2MB");
+              return;
+            }
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const base64String = reader.result;
+              setCompanyLogo(base64String);
+              localStorage.setItem("elandstech_logo", base64String);
+              alert("Logo uploaded successfully!");
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+
+        const removeLogo = () => {
+          setCompanyLogo("");
+          localStorage.removeItem("elandstech_logo");
+          alert("Logo removed successfully!");
+        };
+
+        const saveCompanyDetails = () => {
+          localStorage.setItem(
+            "elandstech_company",
+            JSON.stringify(companyDetails)
+          );
+          alert("Company details saved successfully!");
+        };
+
+        const saveBankDetails = () => {
+          localStorage.setItem("elandstech_banks", JSON.stringify(bankDetails));
+          alert("Bank details saved successfully!");
+        };
+
+        const calculateTotals = () => {
+          const subtotal = invoiceData.items.reduce(
+            (sum, item) => sum + item.quantity * item.unitPrice,
+            0
+          );
+          const vat = subtotal * 0.15;
+          const total = subtotal + vat;
+          return { subtotal, vat, total };
+        };
+
+        const { subtotal, vat, total } = calculateTotals();
+        const currentBankDetails = bankDetails[invoiceData.serviceType];
+
+        const updateField = (section, field, value) => {
+          setInvoiceData((prev) => ({
+            ...prev,
+            [section]:
+              typeof prev[section] === "object"
+                ? { ...prev[section], [field]: value }
+                : value,
+          }));
+        };
+
+        const updateItem = (index, field, value) => {
+          setInvoiceData((prev) => ({
+            ...prev,
+            items: prev.items.map((item, i) =>
+              i === index
+                ? {
+                    ...item,
+                    [field]:
+                      field === "quantity" || field === "unitPrice"
+                        ? parseFloat(value) || 0
+                        : value,
+                  }
+                : item
+            ),
+          }));
+        };
+
+        const addItem = () => {
+          setInvoiceData((prev) => ({
+            ...prev,
+            items: [
+              ...prev.items,
+              { description: "", quantity: 1, unitPrice: 0 },
+            ],
+          }));
+        };
+
+        const removeItem = (index) => {
+          if (invoiceData.items.length > 1) {
+            setInvoiceData((prev) => ({
+              ...prev,
+              items: prev.items.filter((_, i) => i !== index),
+            }));
+          }
+        };
+
+        const createNewInvoice = () => {
+          const newNumber = `INV-2025-${String(invoiceCounter).padStart(
+            3,
+            "0"
+          )}`;
+          setInvoiceData({
+            number: newNumber,
+            date: new Date().toISOString().split("T")[0],
+            serviceType: "MECHANICAL",
+            clientName: "",
+            clientCompany: "",
+            clientAddress: "",
+            clientEmail: "",
+            clientTel: "",
+            projectDetails: {
+              projectName: "",
+              projectNumber: "",
+              location: "",
+              poNumber: "",
+            },
+            items: [{ description: "", quantity: 1, unitPrice: 0 }],
+            notes: "",
+          });
+        };
+
+        const handlePrint = () => window.print();
+
+        const handleSavePDF = async () => {
+          try {
+            const existingInvoice = savedInvoices.find(
+              (inv) => inv.number === invoiceData.number
+            );
+            if (existingInvoice) {
+              const confirmOverwrite = window.confirm(
+                `Invoice ${invoiceData.number} already exists. Do you want to overwrite it?`
+              );
+              if (!confirmOverwrite) return;
+            }
+
+            const element = document.getElementById("invoice-content");
+            const root = document.documentElement;
+            root.classList.add("print-mode");
+            await new Promise((r) => setTimeout(r, 300));
+
+            const canvas = await html2canvas(element, {
+              scale: 2,
+              useCORS: true,
+              logging: false,
+              scrollY: -window.scrollY,
+              scrollX: -window.scrollX,
+            });
+
+            root.classList.remove("print-mode");
+
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new window.jspdf.jsPDF({
+              orientation: "portrait",
+              unit: "mm",
+              format: "a4",
+            });
+
+            const pdfWidth = 210;
+            const pdfHeight = 297;
+            const imgWidth = pdfWidth;
+            const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            let yPosition = 0;
+            let heightLeft = imgHeight;
+
+            pdf.addImage(imgData, "PNG", 0, yPosition, imgWidth, imgHeight);
+            heightLeft -= pdfHeight;
+
+            while (heightLeft > 0) {
+              yPosition = -(imgHeight - heightLeft);
+              pdf.addPage();
+              pdf.addImage(imgData, "PNG", 0, yPosition, imgWidth, imgHeight);
+              heightLeft -= pdfHeight;
+            }
+
+            pdf.save(`${invoiceData.number}.pdf`);
+
+            const newInvoice = {
+              ...invoiceData,
+              subtotal,
+              vat,
+              total,
+              savedAt: new Date().toISOString(),
+            };
+
+            let updated;
+            if (existingInvoice) {
+              updated = savedInvoices.map((inv) =>
+                inv.number === invoiceData.number ? newInvoice : inv
+              );
+            } else {
+              updated = [...savedInvoices, newInvoice];
+            }
+
+            setSavedInvoices(updated);
+            localStorage.setItem(
+              "elandstech_invoices",
+              JSON.stringify(updated)
+            );
+
+            alert(`Invoice ${invoiceData.number} saved successfully!`);
+
+            setInvoiceCounter((prev) => prev + 1);
+            const newNumber = `INV-2025-${String(invoiceCounter + 1).padStart(
+              3,
+              "0"
+            )}`;
+            setInvoiceData({
+              number: newNumber,
+              date: new Date().toISOString().split("T")[0],
+              serviceType: "MECHANICAL",
+              clientName: "",
+              clientCompany: "",
+              clientAddress: "",
+              clientEmail: "",
+              clientTel: "",
+              projectDetails: {
+                projectName: "",
+                projectNumber: "",
+                location: "",
+                poNumber: "",
+              },
+              items: [{ description: "", quantity: 1, unitPrice: 0 }],
+              notes: "",
+            });
+          } catch (error) {
+            console.error("Error saving PDF:", error);
+            alert("Failed to save PDF: " + error.message);
+          }
+        };
+
+        return (
+          <div className="min-h-screen bg-gray-100 flex">
+            {/* Sidebar */}
+            <div
+              className={`fixed lg:static inset-y-0 left-0 w-64 bg-gray-900 text-white transform ${
+                sidebarOpen ? "translate-x-0" : "-translate-x-full"
+              } lg:translate-x-0 transition-transform duration-300 z-50 print:hidden`}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="text-lg font-bold">
+                    ELANDSTECH
+                    <br />
+                    INVOICES
+                  </div>
+                  <button
+                    onClick={() => setSidebarOpen(false)}
+                    className="lg:hidden"
+                  >
+                    <XIcon />
+                  </button>
+                </div>
+                <nav className="space-y-2">
+                  <button
+                    onClick={createNewInvoice}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-700"
+                  >
+                    <PlusIcon />
+                    <span>New Invoice</span>
+                  </button>
+                  <a
+                    href="#"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-800 hover:bg-gray-700"
+                  >
+                    <span>📄</span>
+                    <span>Invoices ({savedInvoices.length})</span>
+                  </a>
+                  <button
+                    onClick={() => setSettingsOpen(true)}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-700 hover:bg-gray-600"
+                  >
+                    <SettingsIcon />
+                    <span>Settings</span>
+                  </button>
+                  <div className="border-t border-gray-700 my-2 pt-2">
+                    <button
+                      onClick={handlePrint}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-700 hover:bg-gray-600"
+                    >
+                      🖨️ Print
+                    </button>
+                    <button
+                      onClick={handleSavePDF}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 mt-2"
+                    >
+                      💾 Save as PDF
+                    </button>
+                  </div>
+                </nav>
+              </div>
+            </div>
+
+            {/* Overlay */}
+            {sidebarOpen && (
+              <div
+                className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden print:hidden"
+                onClick={() => setSidebarOpen(false)}
+              />
+            )}
+
+            {/* Settings Modal */}
+            {settingsOpen && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 print:hidden overflow-y-auto">
+                <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full p-6 my-8 max-h-[90vh] overflow-y-auto">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      Company Settings
+                    </h2>
+                    <button
+                      onClick={() => setSettingsOpen(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <XIcon />
+                    </button>
+                  </div>
+
+                  <div className="space-y-8">
+                    {/* Logo Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 text-gray-700">
+                        Company Logo
+                      </h3>
+
+                      {companyLogo ? (
+                        <div className="space-y-4">
+                          <div className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50 flex items-center justify-center">
+                            <img
+                              src={companyLogo}
+                              alt="Company Logo"
+                              className="max-h-32 max-w-full object-contain"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <label className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer">
+                              <UploadIcon />
+                              <span>Change Logo</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleLogoUpload}
+                                className="hidden"
+                              />
+                            </label>
+                            <button
+                              onClick={removeLogo}
+                              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                              <UploadIcon />
+                              <p className="mb-2 text-sm text-gray-500 mt-2">
+                                <span className="font-semibold">
+                                  Click to upload
+                                </span>{" "}
+                                or drag and drop
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                PNG, JPG or SVG (Max 2MB)
+                              </p>
+                            </div>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleLogoUpload}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Company Details Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 text-gray-700">
+                        Company Information
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Company Name
+                          </label>
+                          <input
+                            type="text"
+                            value={companyDetails.name}
+                            onChange={(e) =>
+                              setCompanyDetails({
+                                ...companyDetails,
+                                name: e.target.value,
+                              })
+                            }
+                            className="w-full border rounded px-3 py-2"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Tagline
+                          </label>
+                          <input
+                            type="text"
+                            value={companyDetails.tagline}
+                            onChange={(e) =>
+                              setCompanyDetails({
+                                ...companyDetails,
+                                tagline: e.target.value,
+                              })
+                            }
+                            className="w-full border rounded px-3 py-2"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Address
+                          </label>
+                          <input
+                            type="text"
+                            value={companyDetails.address}
+                            onChange={(e) =>
+                              setCompanyDetails({
+                                ...companyDetails,
+                                address: e.target.value,
+                              })
+                            }
+                            className="w-full border rounded px-3 py-2"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            City
+                          </label>
+                          <input
+                            type="text"
+                            value={companyDetails.city}
+                            onChange={(e) =>
+                              setCompanyDetails({
+                                ...companyDetails,
+                                city: e.target.value,
+                              })
+                            }
+                            className="w-full border rounded px-3 py-2"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Website
+                          </label>
+                          <input
+                            type="text"
+                            value={companyDetails.website}
+                            onChange={(e) =>
+                              setCompanyDetails({
+                                ...companyDetails,
+                                website: e.target.value,
+                              })
+                            }
+                            className="w-full border rounded px-3 py-2"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Email
+                          </label>
+                          <input
+                            type="email"
+                            value={companyDetails.email}
+                            onChange={(e) =>
+                              setCompanyDetails({
+                                ...companyDetails,
+                                email: e.target.value,
+                              })
+                            }
+                            className="w-full border rounded px-3 py-2"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Phone
+                          </label>
+                          <input
+                            type="tel"
+                            value={companyDetails.phone}
+                            onChange={(e) =>
+                              setCompanyDetails({
+                                ...companyDetails,
+                                phone: e.target.value,
+                              })
+                            }
+                            className="w-full border rounded px-3 py-2"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            VAT Number
+                          </label>
+                          <input
+                            type="text"
+                            value={companyDetails.vat}
+                            onChange={(e) =>
+                              setCompanyDetails({
+                                ...companyDetails,
+                                vat: e.target.value,
+                              })
+                            }
+                            className="w-full border rounded px-3 py-2"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        onClick={saveCompanyDetails}
+                        className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      >
+                        Save Company Details
+                      </button>
+                    </div>
+
+                    {/* Bank Details Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 text-gray-700">
+                        Bank Details (Per Service Type)
+                      </h3>
+
+                      {Object.keys(bankDetails).map((serviceType) => (
+                        <div
+                          key={serviceType}
+                          className="mb-6 border rounded-lg p-4 bg-gray-50"
+                        >
+                          <h4 className="font-semibold mb-3 text-blue-700">
+                            {serviceType}
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-medium mb-1">
+                                Bank Name
+                              </label>
+                              <input
+                                type="text"
+                                value={bankDetails[serviceType].bankName}
+                                onChange={(e) =>
+                                  setBankDetails({
+                                    ...bankDetails,
+                                    [serviceType]: {
+                                      ...bankDetails[serviceType],
+                                      bankName: e.target.value,
+                                    },
+                                  })
+                                }
+                                className="w-full border rounded px-2 py-1 text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium mb-1">
+                                Account Holder
+                              </label>
+                              <input
+                                type="text"
+                                value={bankDetails[serviceType].accountHolder}
+                                onChange={(e) =>
+                                  setBankDetails({
+                                    ...bankDetails,
+                                    [serviceType]: {
+                                      ...bankDetails[serviceType],
+                                      accountHolder: e.target.value,
+                                    },
+                                  })
+                                }
+                                className="w-full border rounded px-2 py-1 text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium mb-1">
+                                Branch Name
+                              </label>
+                              <input
+                                type="text"
+                                value={bankDetails[serviceType].branchName}
+                                onChange={(e) =>
+                                  setBankDetails({
+                                    ...bankDetails,
+                                    [serviceType]: {
+                                      ...bankDetails[serviceType],
+                                      branchName: e.target.value,
+                                    },
+                                  })
+                                }
+                                className="w-full border rounded px-2 py-1 text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium mb-1">
+                                Branch Code
+                              </label>
+                              <input
+                                type="text"
+                                value={bankDetails[serviceType].branchCode}
+                                onChange={(e) =>
+                                  setBankDetails({
+                                    ...bankDetails,
+                                    [serviceType]: {
+                                      ...bankDetails[serviceType],
+                                      branchCode: e.target.value,
+                                    },
+                                  })
+                                }
+                                className="w-full border rounded px-2 py-1 text-sm"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <label className="block text-xs font-medium mb-1">
+                                Account Number
+                              </label>
+                              <input
+                                type="text"
+                                value={bankDetails[serviceType].accountNumber}
+                                onChange={(e) =>
+                                  setBankDetails({
+                                    ...bankDetails,
+                                    [serviceType]: {
+                                      ...bankDetails[serviceType],
+                                      accountNumber: e.target.value,
+                                    },
+                                  })
+                                }
+                                className="w-full border rounded px-2 py-1 text-sm"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      <button
+                        onClick={saveBankDetails}
+                        className="mt-2 px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                      >
+                        Save Bank Details
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex justify-end">
+                    <button
+                      onClick={() => setSettingsOpen(false)}
+                      className="px-6 py-2 bg-gray-800 text-white rounded hover:bg-gray-900"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Main Content */}
+            <div className="flex-1 overflow-auto">
+              {/* Header Actions */}
+              <div className="bg-white border-b px-4 py-3 flex items-center justify-between print:hidden">
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  className="lg:hidden p-2 hover:bg-gray-100 rounded"
+                >
+                  <MenuIcon />
+                </button>
+                <div className="flex gap-2 ml-auto">
+                  <button
+                    onClick={() => setSettingsOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                  >
+                    <SettingsIcon />
+                    <span className="hidden sm:inline">Settings</span>
+                  </button>
+                   {/*
+                  <button
+                    onClick={createNewInvoice}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    <PlusIcon />
+                    <span className="hidden sm:inline">New</span>
+                  </button>
+                  <button
+                    onClick={handlePrint}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                  >
+                    <PrinterIcon />
+                    <span className="hidden sm:inline">Print</span>
+                  </button>
+                  */}
+                  <button
+                    onClick={handleSavePDF}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                  >
+                    <DownloadIcon />
+                    <span className="hidden sm:inline">Save PDF</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Two Column Layout: Input Form + Preview */}
+              <div className="flex flex-col xl:flex-row gap-6 p-6 print:block print:p-0">
+                {/* LEFT: Input Form */}
+                <div className="xl:w-1/2 space-y-6 print:hidden">
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-xl font-bold mb-4 text-gray-800">Invoice Details</h2>
+                    
+                    {/* Invoice Number & Date */}
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Invoice Number</label>
+                        <input
+                          type="text"
+                          value={invoiceData.number}
+                          readOnly
+                          className="w-full border rounded px-3 py-2 bg-gray-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Date</label>
+                        <input
+                          type="date"
+                          value={invoiceData.date}
+                          onChange={(e) => updateField("date", null, e.target.value)}
+                          className="w-full border rounded px-3 py-2"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Service Type */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium mb-2">Service Type</label>
+                      <select
+                        value={invoiceData.serviceType}
+                        onChange={(e) => updateField("serviceType", null, e.target.value)}
+                        className="w-full border rounded px-3 py-2"
+                      >
+                        <option value="MECHANICAL">MECHANICAL</option>
+                        <option value="ELECTRICAL">ELECTRICAL</option>
+                        <option value="BOILERMAKING">BOILERMAKING</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Client Details */}
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-xl font-bold mb-4 text-gray-800">Client Details</h2>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Contact Name</label>
+                        <input
+                          type="text"
+                          value={invoiceData.clientName}
+                          onChange={(e) => updateField("clientName", null, e.target.value)}
+                          className="w-full border rounded px-3 py-2"
+                          placeholder="John Doe"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Company</label>
+                        <input
+                          type="text"
+                          value={invoiceData.clientCompany}
+                          onChange={(e) => updateField("clientCompany", null, e.target.value)}
+                          className="w-full border rounded px-3 py-2"
+                          placeholder="ABC Corporation"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Address</label>
+                        <input
+                          type="text"
+                          value={invoiceData.clientAddress}
+                          onChange={(e) => updateField("clientAddress", null, e.target.value)}
+                          className="w-full border rounded px-3 py-2"
+                          placeholder="123 Main Street, City"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Email</label>
+                        <input
+                          type="email"
+                          value={invoiceData.clientEmail}
+                          onChange={(e) => updateField("clientEmail", null, e.target.value)}
+                          className="w-full border rounded px-3 py-2"
+                          placeholder="client@company.com"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Telephone</label>
+                        <input
+                          type="tel"
+                          value={invoiceData.clientTel}
+                          onChange={(e) => updateField("clientTel", null, e.target.value)}
+                          className="w-full border rounded px-3 py-2"
+                          placeholder="011 123 4567"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Project Details */}
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-xl font-bold mb-4 text-gray-800">Project Details</h2>
+                    <div className="space-y-4">
+                      {Object.entries(invoiceData.projectDetails).map(([key, value]) => (
+                        <div key={key}>
+                          <label className="block text-sm font-medium mb-2 capitalize">
+                            {key.replace(/([A-Z])/g, " $1").trim()}
+                          </label>
+                          <input
+                            type="text"
+                            value={value}
+                            onChange={(e) => updateField("projectDetails", key, e.target.value)}
+                            className="w-full border rounded px-3 py-2"
+                            placeholder={`Enter ${key.replace(/([A-Z])/g, " $1").toLowerCase()}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Line Items */}
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-xl font-bold mb-4 text-gray-800">Line Items</h2>
+                    <div className="space-y-4">
+                      {invoiceData.items.map((item, index) => (
+                        <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                          <div className="flex justify-between items-start mb-3">
+                            <h3 className="font-semibold text-gray-700">Item {index + 1}</h3>
+                            {invoiceData.items.length > 1 && (
+                              <button
+                                onClick={() => removeItem(index)}
+                                className="text-red-600 hover:text-red-800 font-bold text-xl leading-none"
+                              >
+                                ×
+                              </button>
+                            )}
+                          </div>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Description</label>
+                              <textarea
+                                value={item.description}
+                                onChange={(e) => updateItem(index, "description", e.target.value)}
+                                className="w-full border rounded px-3 py-2"
+                                rows="2"
+                                placeholder="Service or item description"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-sm font-medium mb-1">Quantity</label>
+                                <input
+                                  type="number"
+                                  value={item.quantity}
+                                  onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                                  className="w-full border rounded px-3 py-2"
+                                  min="0"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">Unit Price (R)</label>
+                                <input
+                                  type="number"
+                                  value={item.unitPrice}
+                                  onChange={(e) => updateItem(index, "unitPrice", e.target.value)}
+                                  className="w-full border rounded px-3 py-2"
+                                  min="0"
+                                  step="0.01"
+                                />
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-sm font-medium text-gray-600">Amount: </span>
+                              <span className="text-lg font-bold text-gray-800">
+                                R {(item.quantity * item.unitPrice).toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        onClick={addItem}
+                        className="w-full py-2 border-2 border-dashed border-blue-300 rounded-lg text-blue-600 hover:bg-blue-50 font-medium"
+                      >
+                        + Add Item
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Notes */}
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-xl font-bold mb-4 text-gray-800">Additional Notes</h2>
+                    <textarea
+                      value={invoiceData.notes}
+                      onChange={(e) => updateField("notes", null, e.target.value)}
+                      className="w-full border rounded px-3 py-2"
+                      rows="4"
+                      placeholder="Special instructions, terms, or additional information..."
+                    />
+                  </div>
+
+                  {/* Totals Summary */}
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-xl font-bold mb-4 text-gray-800">Summary</h2>
+                    <div className="space-y-2">
+                      <div className="flex justify-between py-2 border-b">
+                        <span className="font-medium">Subtotal:</span>
+                        <span className="font-bold">R {subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b">
+                        <span className="font-medium">VAT (15%):</span>
+                        <span className="font-bold">R {vat.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between py-3 bg-blue-800 text-white px-4 rounded">
+                        <span className="font-bold text-lg">TOTAL:</span>
+                        <span className="font-bold text-lg">R {total.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* RIGHT: Invoice Preview */}
+                <div className="xl:w-1/2 print:w-full">
+                  <div className="print:hidden mb-4">
+                    <h2 className="text-xl font-bold text-gray-800">Invoice Preview</h2>
+                    
+                  </div>
+                  
+                  <div
+                    id="invoice-content"
+                    className="bg-white shadow-lg p-8 rounded-lg print:shadow-none print:rounded-none print:p-8"
+                  >
+                    {/* Header */}
+                    <div className="border-b-4 border-blue-800 pb-6 mb-6 header-container">
+                      <div className="flex flex-col md:flex-row justify-between gap-6">
+                        <div className="flex-1">
+                          {companyLogo ? (
+                            <div className="mb-4">
+                              <img
+                                src={companyLogo}
+                                alt="Company Logo"
+                                className="max-h-20 object-contain"
+                              />
+                            </div>
+                          ) : (
+                            <div className="text-3xl font-bold text-blue-800 mb-2">
+                              {companyDetails.name}
+                            </div>
+                          )}
+                          <div className="text-sm text-gray-700 font-semibold mb-4">
+                            {companyDetails.tagline}
+                          </div>
+                          <div className="text-xs text-gray-600 space-y-1">
+                            <div className="font-semibold">HEAD OFFICE:</div>
+                            <div>{companyDetails.address}</div>
+                            <div>{companyDetails.city}</div>
+                            <div className="mt-2">W: {companyDetails.website}</div>
+                            <div>E: {companyDetails.email}</div>
+                            <div>T: {companyDetails.phone}</div>
+                            <div className="mt-2">
+                              VAT Reg: {companyDetails.vat}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="md:w-80 space-y-2">
+                          <div className="text-4xl font-bold text-right mb-4">
+                            INVOICE
+                          </div>
+                          <div className="bg-gray-50 p-2 rounded flex justify-between">
+                            <span className="text-xs font-semibold text-gray-600">
+                              Invoice No.
+                            </span>
+                            <span className="text-sm font-bold">{invoiceData.number}</span>
+                          </div>
+                          <div className="bg-gray-50 p-2 rounded flex justify-between">
+                            <span className="text-xs font-semibold text-gray-600">
+                              Date
+                            </span>
+                            <span className="text-sm font-bold">{invoiceData.date}</span>
+                          </div>
+                          <div className="bg-blue-50 p-2 rounded flex justify-between">
+                            <span className="text-xs font-semibold text-gray-600">
+                              Service Type
+                            </span>
+                            <span className="text-sm font-bold">{invoiceData.serviceType}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Client & Project Info */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 client-project-container">
+                      {/* Client Details */}
+                      <div className="border rounded-lg overflow-hidden">
+                        <div className="bg-blue-900 text-white px-3 py-2 font-bold text-sm">
+                          CLIENT DETAILS
+                        </div>
+                        <div className="p-3 space-y-2 text-xs">
+                          <div>
+                            <span className="font-semibold text-gray-600">Contact Name: </span>
+                            <span>{invoiceData.clientName || "-"}</span>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-600">Company: </span>
+                            <span>{invoiceData.clientCompany || "-"}</span>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-600">Address: </span>
+                            <span>{invoiceData.clientAddress || "-"}</span>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-600">Email: </span>
+                            <span>{invoiceData.clientEmail || "-"}</span>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-600">Tel: </span>
+                            <span>{invoiceData.clientTel || "-"}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Project Details */}
+                      <div className="border rounded-lg overflow-hidden">
+                        <div className="bg-blue-900 text-white px-3 py-2 font-bold text-sm">
+                          PROJECT DETAILS
+                        </div>
+                        <div className="p-3 space-y-2 text-xs">
+                          {Object.entries(invoiceData.projectDetails).map(
+                            ([key, value]) => (
+                              <div key={key}>
+                                <span className="font-semibold text-gray-600 capitalize">
+                                  {key.replace(/([A-Z])/g, " $1").trim()}:{" "}
+                                </span>
+                                <span>{value || "-"}</span>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Items Table */}
+                    <div className="mb-6 overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-blue-900 text-white">
+                            <th className="text-left py-3 px-3">DESCRIPTION</th>
+                            <th className="text-center py-3 px-3 w-24">QTY</th>
+                            <th className="text-right py-3 px-3 w-32">
+                              UNIT PRICE
+                            </th>
+                            <th className="text-right py-3 px-3 w-32">AMOUNT</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {invoiceData.items.map((item, index) => (
+                            <tr key={index} className="border-b">
+                              <td className="py-2 px-3">{item.description || "-"}</td>
+                              <td className="text-center py-2 px-3">{item.quantity}</td>
+                              <td className="text-right py-2 px-3">R {item.unitPrice.toFixed(2)}</td>
+                              <td className="text-right py-2 px-3 font-semibold">
+                                R {(item.quantity * item.unitPrice).toFixed(2)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Notes - only show if exists */}
+                    {invoiceData.notes && (
+                      <div className="mb-6">
+                        <div className="bg-gray-50 p-3 rounded">
+                          <h4 className="text-sm font-bold mb-2">Notes:</h4>
+                          <p className="text-xs text-gray-700 whitespace-pre-wrap">
+                            {invoiceData.notes}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Totals */}
+                    <div className="flex justify-end mb-6">
+                      <div className="w-72 space-y-2">
+                        <div className="flex justify-between py-2 text-sm border-t">
+                          <span>Subtotal:</span>
+                          <span className="font-semibold">
+                            R {subtotal.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between py-2 text-sm">
+                          <span>VAT (15%):</span>
+                          <span className="font-semibold">R {vat.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between py-3 bg-blue-800 text-white px-4 rounded font-bold text-lg">
+                          <span>TOTAL:</span>
+                          <span>R {total.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Signatures */}
+                    <div className="text-xs mb-6 pt-6 border-t">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="mb-2 font-semibold">AUTHORIZED BY:</p>
+                          <div className="border-b border-gray-400 pb-8"></div>
+                          <p className="mt-1 text-gray-600">Name & Signature</p>
+                        </div>
+                        <div>
+                          <p className="mb-2 font-semibold">CLIENT SIGNATURE:</p>
+                          <div className="border-b border-gray-400 pb-8"></div>
+                          <p className="mt-1 text-gray-600">Name & Signature</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="border-t-2 pt-6">
+                      <div className="bg-gray-50 p-4 rounded mb-4">
+                        <h3 className="font-bold text-sm mb-3">BANKING DETAILS</h3>
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
+                          <div>
+                            <span className="font-semibold">Bank Name:</span>{" "}
+                            {currentBankDetails.bankName}
+                          </div>
+                          <div>
+                            <span className="font-semibold">Account Holder:</span>{" "}
+                            {currentBankDetails.accountHolder}
+                          </div>
+                          <div>
+                            <span className="font-semibold">Branch Name:</span>{" "}
+                            {currentBankDetails.branchName}
+                          </div>
+                          <div>
+                            <span className="font-semibold">Branch Code:</span>{" "}
+                            {currentBankDetails.branchCode}
+                          </div>
+                          <div className="col-span-2">
+                            <span className="font-semibold">Account Number:</span>{" "}
+                            {currentBankDetails.accountNumber}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-blue-50 p-4 rounded mb-4">
+                        <h3 className="font-bold text-sm mb-2">PAYMENT TERMS</h3>
+                        <p className="text-xs text-gray-700">
+                          • Payment due within 30 days of invoice date
+                          <br />
+                          • All work carries a 6-month warranty
+                          <br />• Materials and parts carry manufacturer's warranty
+                        </p>
+                      </div>
+
+                      <div className="text-center text-xs text-gray-600">
+                        <p>Thank you for your business!</p>
+                        <p className="mt-2">
+                          For queries, contact us at {companyDetails.email} or{" "}
+                          {companyDetails.phone}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<InvoiceApp />);
+    </script>
+    <script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('✅ Service Worker registered!', reg))
+      .catch(err => console.log('❌ Service Worker registration failed:', err));
+  });
+}
+
+// PWA Install Prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  
+  // Show install button
+  const installBtn = document.createElement('button');
+  installBtn.textContent = '📱 Install App';
+  installBtn.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:12px 24px;background:#1e40af;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:9999;';
+  installBtn.onclick = async () => {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response: ${outcome}`);
+    deferredPrompt = null;
+    installBtn.remove();
+  };
+  document.body.appendChild(installBtn);
+});
+</script>
+
+  </body>
+</html>
